@@ -7,10 +7,12 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models.index import db, User
 from api.routes import api
 from api.admin import setup_admin
-from api.commands import setup_commands
+
+
+from flask_jwt_extended import JWTManager
 
 #from models import Person
 
@@ -27,6 +29,8 @@ else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+
 MIGRATE = Migrate(app, db, compare_type = True)
 db.init_app(app)
 
@@ -35,12 +39,13 @@ CORS(app)
 
 # add the admin
 setup_admin(app)
+jwt = JWTManager(app)
 
 # add the admin
-setup_commands(app)
+
 
 # Add all endpoints form the API with a "api" prefix
-app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(api, url_prefix='/api/user')
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
